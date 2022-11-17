@@ -13,6 +13,7 @@ import static org.mockito.Mockito.when;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.SortedMap;
@@ -28,9 +29,12 @@ import com.codahale.metrics.health.HealthCheckRegistry;
 import com.google.common.collect.Sets;
 import emissary.client.response.Agent;
 import emissary.client.response.AgentsResponseEntity;
+import emissary.client.response.Config;
+import emissary.client.response.ConfigsResponseEntity;
 import emissary.client.response.MapResponseEntity;
 import emissary.client.response.PlacesResponseEntity;
 import emissary.command.ServerCommand;
+import emissary.config.ConfigUtil;
 import emissary.core.EmissaryException;
 import emissary.core.MetricsManager;
 import emissary.core.Namespace;
@@ -287,6 +291,55 @@ class EmissaryApiTest extends EndpointTestBase {
             assertThrows(EmissaryException.class, ApiUtils::lookupPeers);
         } finally {
             Namespace.unbind("DirectoryPlace");
+        }
+    }
+
+    @Test
+    void getConfigs() {
+        String flavor = "CLUSTER";
+        String place = "emissary.place.sample.ToLowerPlace";
+        String expected = place + ConfigUtil.CONFIG_FILE_ENDING;
+        String expectedFlavored = place + "-" + flavor + ConfigUtil.CONFIG_FILE_ENDING;
+
+        try (Response response = target("configuration/" + place).request().get()) {
+            assertEquals(200, response.getStatus());
+            ConfigsResponseEntity entity = response.readEntity(ConfigsResponseEntity.class);
+            assertTrue(entity.getErrors().isEmpty());
+
+            List<Config> list = entity.getLocal().getConfigs();
+            assertFalse(list.isEmpty());
+
+            Config config = list.get(0);
+            assertEquals(flavor, config.getFlavors().get(0));
+            assertEquals(expected, config.getConfigs().get(0));
+            assertEquals(expectedFlavored, config.getConfigs().get(1));
+        }
+    }
+
+    @Test
+    void getConfigsDetailed() {
+        String flavor = "CLUSTER";
+        String place = "emissary.place.sample.ToLowerPlace";
+        String expected = place + ConfigUtil.CONFIG_FILE_ENDING;
+        String expectedFlavored = place + "-" + flavor + ConfigUtil.CONFIG_FILE_ENDING;
+
+        try (Response response = target("configuration/detailed/" + place).request().get()) {
+            assertEquals(200, response.getStatus());
+            ConfigsResponseEntity entity = response.readEntity(ConfigsResponseEntity.class);
+            assertTrue(entity.getErrors().isEmpty());
+
+            List<Config> list = entity.getLocal().getConfigs();
+            assertEquals(3, list.size());
+
+            assertTrue(list.get(0).getFlavors().isEmpty());
+            assertEquals(expected, list.get(0).getConfigs().get(0));
+
+            assertEquals(flavor, list.get(1).getFlavors().get(0));
+            assertEquals(expectedFlavored, list.get(1).getConfigs().get(0));
+
+            assertEquals(flavor, list.get(2).getFlavors().get(0));
+            assertEquals(expected, list.get(2).getConfigs().get(0));
+            assertEquals(expectedFlavored, list.get(2).getConfigs().get(1));
         }
     }
 }

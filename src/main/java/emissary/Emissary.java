@@ -20,6 +20,7 @@ import com.beust.jcommander.MissingCommandException;
 import com.google.common.annotations.VisibleForTesting;
 import emissary.command.AgentsCommand;
 import emissary.command.Banner;
+import emissary.command.ConfigCommand;
 import emissary.command.EmissaryCommand;
 import emissary.command.EnvCommand;
 import emissary.command.FeedCommand;
@@ -55,7 +56,7 @@ public class Emissary {
         List<Class<? extends EmissaryCommand>> cmds =
                 Arrays.asList(ServerCommand.class, HelpCommand.class, WhatCommand.class, TopologyCommand.class, FeedCommand.class,
                         AgentsCommand.class, PoolCommand.class, VersionCommand.class, RunCommand.class, EnvCommand.class, StopCommand.class,
-                        PeersCommand.class);
+                        PeersCommand.class, ConfigCommand.class);
         Map<String, EmissaryCommand> staticCopy = new HashMap<>();
         for (Class<? extends EmissaryCommand> clz : cmds) {
             EmissaryCommand cmd;
