@@ -9,6 +9,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import javax.ws.rs.GET;
@@ -26,7 +27,6 @@ import emissary.config.ConfigEntry;
 import emissary.config.ConfigUtil;
 import emissary.config.Configurator;
 import emissary.config.ServiceConfigGuide;
-import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Path("")
@@ -117,6 +117,8 @@ public class Configs {
         return new ConfigsResponseEntity(detailed);
     }
 
+    static Pattern invalidDots = Pattern.compile("[.]{2,}");
+
     /**
      * Validate the provided class name
      *
@@ -124,24 +126,10 @@ public class Configs {
      * @return the default configuration file for the class
      */
     protected static String validate(String name) {
-        try {
-            // see if it is a valid class first
-            Class<?> c = Class.forName(name);
-            return c.getName() + CONFIG_FILE_ENDING;
-        } catch (ClassNotFoundException e) {
-            // cfg files should end with .cfg
-            String cfg = StringUtils.appendIfMissing(name, CONFIG_FILE_ENDING);
-
-            // there should not be any file system separators
-            cfg = StringUtils.replace(cfg, FileSystems.getDefault().getSeparator(), ".");
-
-            // remove multiple dots
-            cfg = RegExUtils.replaceAll(cfg, "[.]+", ".");
-
-            return cfg;
-        } catch (NullPointerException e) {
+        if (StringUtils.isBlank(name) || name.contains(FileSystems.getDefault().getSeparator()) || invalidDots.matcher(name).find()) {
             throw new IllegalArgumentException("Invalid config name: " + name);
         }
+        return StringUtils.appendIfMissing(name, CONFIG_FILE_ENDING);
     }
 
     /**
