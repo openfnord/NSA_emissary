@@ -4,6 +4,7 @@ import static emissary.config.ConfigUtil.CONFIG_FILE_ENDING;
 import static emissary.place.ServiceProviderPlace.RESERVED_PROPS;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -25,6 +26,7 @@ import emissary.config.ConfigEntry;
 import emissary.config.ConfigUtil;
 import emissary.config.Configurator;
 import emissary.config.ServiceConfigGuide;
+import org.apache.commons.lang3.RegExUtils;
 import org.apache.commons.lang3.StringUtils;
 
 @Path("")
@@ -48,7 +50,7 @@ public class Configs {
     /**
      * Get the configuration details for the specified class.
      *
-     * @param name the fully qualified class name
+     * @param name the fully qualified class name or config file
      * @param detailed true for verbose mode, false otherwise
      * @return the config response object
      */
@@ -65,12 +67,12 @@ public class Configs {
     /**
      * Get the configuration details for the specified class.
      *
-     * @param name the fully qualified class name
+     * @param name the fully qualified class name or config file
      * @param detailed true for verbose mode, false otherwise
      * @return the config response object
      */
     public static ConfigsResponseEntity getConfigsResponse(String name, boolean detailed) throws IOException {
-        final String cfg = validateClass(name);
+        final String cfg = validate(name);
         return detailed ? getEmissaryConfigDetailed(cfg) : getEmissaryConfig(cfg);
     }
 
@@ -118,15 +120,27 @@ public class Configs {
     /**
      * Validate the provided class name
      *
-     * @param name the full qualified class name
+     * @param name the full qualified class name or config file
      * @return the default configuration file for the class
      */
-    protected static String validateClass(String name) {
+    protected static String validate(String name) {
         try {
+            // see if it is a valid class first
             Class<?> c = Class.forName(name);
             return c.getName() + CONFIG_FILE_ENDING;
-        } catch (NullPointerException | ClassNotFoundException e) {
-            throw new IllegalArgumentException("Invalid class name: " + name);
+        } catch (ClassNotFoundException e) {
+            // cfg files should end with .cfg
+            String cfg = StringUtils.appendIfMissing(name, CONFIG_FILE_ENDING);
+
+            // there should not be any file system separators
+            cfg = StringUtils.replace(cfg, FileSystems.getDefault().getSeparator(), ".");
+
+            // remove multiple dots
+            cfg = RegExUtils.replaceAll(cfg, "[.]+", ".");
+
+            return cfg;
+        } catch (NullPointerException e) {
+            throw new IllegalArgumentException("Invalid config name: " + name);
         }
     }
 
