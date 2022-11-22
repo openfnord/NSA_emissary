@@ -12,6 +12,7 @@ import java.util.TreeSet;
 import javax.annotation.Nullable;
 
 import com.codahale.metrics.Timer;
+import com.google.common.collect.Lists;
 import emissary.config.ConfigEntry;
 import emissary.config.ConfigUtil;
 import emissary.config.Configurator;
@@ -44,6 +45,18 @@ import org.slf4j.MDC;
  */
 public abstract class ServiceProviderPlace implements emissary.place.IServiceProviderPlace,
         ServiceProviderPlaceMBean {
+
+    public static final String PLACE_NAME = "PLACE_NAME";
+    public static final String SERVICE_NAME = "SERVICE_NAME";
+    public static final String SERVICE_TYPE = "SERVICE_TYPE";
+    public static final String SERVICE_DESCRIPTION = "SERVICE_DESCRIPTION";
+    public static final String SERVICE_COST = "SERVICE_COST";
+    public static final String SERVICE_QUALITY = "SERVICE_QUALITY";
+    public static final String SERVICE_PROXY = "SERVICE_PROXY";
+    public static final String SERVICE_KEY = "SERVICE_KEY";
+
+    public static final List<String> RESERVED_PROPS = Collections.unmodifiableList(Lists.newArrayList(PLACE_NAME, SERVICE_KEY, SERVICE_NAME,
+            SERVICE_TYPE, SERVICE_DESCRIPTION, SERVICE_COST, SERVICE_QUALITY, SERVICE_PROXY));
 
     /**
      * Container for all configuration parameters read from the configuration file for this place. The net result is that
@@ -378,7 +391,7 @@ public abstract class ServiceProviderPlace implements emissary.place.IServicePro
      * @param placeLocation the specified placeLocation or a full four part key to register with
      */
     protected void configureServicePlace(@Nullable String placeLocation) throws IOException {
-        serviceDescription = configG.findStringEntry("SERVICE_DESCRIPTION");
+        serviceDescription = configG.findStringEntry(SERVICE_DESCRIPTION);
         if (serviceDescription == null || serviceDescription.length() == 0) {
             serviceDescription = "Description not available";
         }
@@ -398,11 +411,11 @@ public abstract class ServiceProviderPlace implements emissary.place.IServicePro
 
 
         // Build keys the old fashioned way from parts specified in the config
-        String placeName = configG.findStringEntry("PLACE_NAME");
-        String serviceName = configG.findStringEntry("SERVICE_NAME");
-        String serviceType = configG.findStringEntry("SERVICE_TYPE");
-        int serviceCost = configG.findIntEntry("SERVICE_COST", -1);
-        int serviceQuality = configG.findIntEntry("SERVICE_QUALITY", -1);
+        String placeName = configG.findStringEntry(PLACE_NAME);
+        String serviceName = configG.findStringEntry(SERVICE_NAME);
+        String serviceType = configG.findStringEntry(SERVICE_TYPE);
+        int serviceCost = configG.findIntEntry(SERVICE_COST, -1);
+        int serviceQuality = configG.findIntEntry(SERVICE_QUALITY, -1);
 
         // Bah.
         if (placeName != null && placeName.length() == 0) {
@@ -417,7 +430,7 @@ public abstract class ServiceProviderPlace implements emissary.place.IServicePro
 
         if (placeName != null && serviceName != null && serviceType != null && serviceCost > -1 && serviceQuality > -1) {
             // pick up the proxies(save full 4-tuple keys!)
-            for (String sp : configG.findEntries("SERVICE_PROXY")) {
+            for (String sp : configG.findEntries(SERVICE_PROXY)) {
                 DirectoryEntry de = new DirectoryEntry(sp, serviceName, serviceType, locationPart, serviceDescription, serviceCost, serviceQuality);
                 keys.add(de.getFullKey());
             }
@@ -450,7 +463,7 @@ public abstract class ServiceProviderPlace implements emissary.place.IServicePro
         }
 
         // Now build any keys the new way
-        for (String k : configG.findEntries("SERVICE_KEY")) {
+        for (String k : configG.findEntries(SERVICE_KEY)) {
             if (KeyManipulator.isKeyComplete(k)) {
                 keys.add(k);
             } else {

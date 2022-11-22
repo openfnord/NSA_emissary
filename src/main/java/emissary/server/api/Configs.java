@@ -1,6 +1,7 @@
 package emissary.server.api;
 
 import static emissary.config.ConfigUtil.CONFIG_FILE_ENDING;
+import static emissary.place.ServiceProviderPlace.RESERVED_PROPS;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -150,7 +151,9 @@ public class Configs {
      */
     protected static List<ConfigEntry> normalizeEntries(Configurator cfg) {
         return cfg.getEntries().stream()
-                .sorted(Comparator.comparing(ConfigEntry::getKey).thenComparing(ConfigEntry::getValue))
+                .sorted(Comparator.comparingInt((ConfigEntry ce) -> RESERVED_PROPS.contains(ce.getKey()) ? 0 : 1)
+                        .thenComparing(ConfigEntry::getKey)
+                        .thenComparing(ConfigEntry::getValue))
                 .distinct()
                 .collect(Collectors.toList());
     }
