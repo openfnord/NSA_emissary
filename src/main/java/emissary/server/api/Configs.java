@@ -4,7 +4,6 @@ import static emissary.config.ConfigUtil.CONFIG_FILE_ENDING;
 import static emissary.place.ServiceProviderPlace.RESERVED_PROPS;
 
 import java.io.IOException;
-import java.nio.file.FileSystems;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -117,19 +116,20 @@ public class Configs {
         return new ConfigsResponseEntity(detailed);
     }
 
-    static Pattern invalidDots = Pattern.compile("[.]{2,}");
+    static Pattern invalid = Pattern.compile("/|\\\\|[.]{2,}");
 
     /**
      * Validate the provided class name
      *
-     * @param name the full qualified class name or config file
+     * @param config the full qualified class name or config file
      * @return the default configuration file for the class
      */
-    protected static String validate(String name) {
-        if (StringUtils.isBlank(name) || name.contains(FileSystems.getDefault().getSeparator()) || invalidDots.matcher(name).find()) {
+    protected static String validate(String config) {
+        String name = StringUtils.appendIfMissing(config, CONFIG_FILE_ENDING).trim();
+        if (StringUtils.isBlank(name) || invalid.matcher(name).find()) {
             throw new IllegalArgumentException("Invalid config name: " + name);
         }
-        return StringUtils.appendIfMissing(name, CONFIG_FILE_ENDING);
+        return name;
     }
 
     /**
