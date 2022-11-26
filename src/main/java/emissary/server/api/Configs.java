@@ -4,6 +4,7 @@ import static emissary.config.ConfigUtil.CONFIG_FILE_ENDING;
 import static emissary.place.ServiceProviderPlace.RESERVED_PROPS;
 
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
@@ -116,7 +117,8 @@ public class Configs {
         return new ConfigsResponseEntity(detailed);
     }
 
-    static Pattern invalid = Pattern.compile("/|\\\\|[.]{2,}");
+    static Pattern valid = Pattern.compile("^[A-za-z0-9._-]{1,255}$");
+    static Pattern invalid = Pattern.compile("[.]{2,}");
 
     /**
      * Validate the provided class name
@@ -125,8 +127,9 @@ public class Configs {
      * @return the default configuration file for the class
      */
     protected static String validate(String config) {
-        String name = StringUtils.appendIfMissing(config, CONFIG_FILE_ENDING).trim();
-        if (StringUtils.isBlank(name) || invalid.matcher(name).find()) {
+        String name = StringUtils.appendIfMissing(StringUtils.trim(config), CONFIG_FILE_ENDING);
+        Paths.get(name);
+        if (StringUtils.isBlank(name) || !valid.matcher(name).find() || invalid.matcher(name).find()) {
             throw new IllegalArgumentException("Invalid config name: " + name);
         }
         return name;

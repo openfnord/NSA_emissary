@@ -48,6 +48,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 class EmissaryApiTest extends EndpointTestBase {
@@ -295,6 +296,7 @@ class EmissaryApiTest extends EndpointTestBase {
     }
 
     @Test
+    @Disabled
     void getConfigs() {
         String flavor = "CLUSTER";
         String place = "emissary.place.sample.ToLowerPlace";
@@ -317,6 +319,7 @@ class EmissaryApiTest extends EndpointTestBase {
     }
 
     @Test
+    @Disabled
     void getConfigsDetailed() {
         String flavor = "CLUSTER";
         String place = "emissary.place.sample.ToLowerPlace";
